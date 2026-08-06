@@ -1,0 +1,31 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Java
+**/target/
+**/*.class
+
+# Go
+**/bin/
+
+# Node
+**/node_modules/
+**/dist/
+
+# Env / secrets
+.env
+.env.*
+*.pem
+*.key
+kubeconfig*
+
+# OS/IDE
+.DS_Store
+.idea/
+.vscode/
+.kiro/
