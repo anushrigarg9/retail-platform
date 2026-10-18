@@ -58,3 +58,52 @@ jobs:
           helm lint src/cart/cart/chart
           helm lint src/checkout/checkout/chart
           helm lint src/orders/orders/chart
+
+
+  trivy:
+    name: Build and Scan Container Images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: ui
+            context: src/ui
+          - service: catalog
+            context: src/catalog
+          - service: cart
+            context: src/cart
+          - service: checkout
+            context: src/checkout
+          - service: orders
+            context: src/orders
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build ${{ matrix.service }} image
+        run: docker build -t ${{ matrix.service }}:ci ${{ matrix.context }}
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+        with:
+          version: v0.73.0
+
+      - name: Scan ${{ matrix.service }} image
+        run: |
+          trivy image \
+            --timeout 15m \
+            --scanners vuln \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --output trivy-${{ matrix.service }}.txt \
+            ${{ matrix.service }}:ci
+
+      - name: Upload Trivy report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: trivy-report-${{ matrix.service }}
+          path: trivy-${{ matrix.service }}.txt
+          if-no-files-found: ignore
